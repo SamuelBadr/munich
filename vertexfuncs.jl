@@ -5,7 +5,7 @@ end
 
 function greensfunction0(v, k::SVector; beta, mu)
     iv = im * v * pi / beta
-    dispersion = -2 * sum(cos, k)
+    dispersion = -2 * sum(cospi, k)
     1 / (iv - dispersion + mu)
 end
 
