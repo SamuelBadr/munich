@@ -29,6 +29,8 @@ using ITensors, ITensorMPS
 
 include(joinpath(pkgdir(PartitionedMPSs), "src/bak/conversion.jl"))  # Conversion file
 
+##
+
 # ===============================================================
 # Global and Simulation Parameters
 # ===============================================================
@@ -38,7 +40,7 @@ tolerance = 1e-3
 
 # Function-specific parameters
 δ = 0.04
-μ = 0.0
+μ = 0.1
 β = 10.0
 
 # Grid parameters
@@ -214,7 +216,7 @@ end
 # Patching and Element-wise Multiplication
 # ===============================================================
 function perform_patching(projtt, pordering, maxbonddim, tolerance)
-    return TCIA.adaptiveinterpolate(projtt, pordering; maxbonddim=maxbonddim, tolerance=tolerance)
+    return TCIA.adaptiveinterpolate(projtt, pordering; maxbonddim, tolerance)
 end
 
 # ===============================================================
@@ -241,7 +243,7 @@ end
 # Main Orchestration Function
 # ===============================================================
 # Setup grid and dimensions
-grid, localdims = create_grid()
+const grid, localdims = create_grid()
 
 # Define the qf functions using grid coordinate transformation
 qf_gr = x -> greens_function_retarded(QG.quantics_to_origcoord(grid, x)...)
@@ -253,8 +255,8 @@ first_pivots_ao = compute_first_pivots(qf_ao, localdims)
 
 # Run TCI interpolation for both Green's function and occupied spectral function
 tci_time = @elapsed begin
-    tci_tensor_gr, _, _ = run_tci(qf_gr, localdims, first_pivots_gr; tolerance=tolerance)
-    tci_tensor_ao, _, _ = run_tci(qf_ao, localdims, first_pivots_ao; tolerance=tolerance)
+    tci_tensor_gr, _, _ = run_tci(qf_gr, localdims, first_pivots_gr; tolerance)
+    tci_tensor_ao, _, _ = run_tci(qf_ao, localdims, first_pivots_ao; tolerance)
     global tci_tensor_gr_global = tci_tensor_gr
     global tci_tensor_ao_global = tci_tensor_ao
 end
@@ -278,7 +280,7 @@ end
 println("Finished ft: t = $(ft_time)")
 ft_reverse_gr = fuse_and_rearrange(ft_gr, sites_rt_vec, R)
 
-# Inverse Fourier transform on tci_mps_ao
+# Forward Fourier transform with inversion (t -> -t, r -> -r) on tci_mps_ao
 inv_ft_time = @elapsed begin
     inv_ft_ao = forward_fourier_transform_inversion(tci_mps_ao, sites_x, sites_y, sites_t)
     global inv_ft_ao_global = inv_ft_ao
@@ -313,7 +315,7 @@ end
 println("Finished ft A^o patching: t = $(patch_time)")
 println("N patches= ", length(projcont_inv_ft_ao))
 
-# Create Partitioned MPS objects and perform element-wise multiplication
+# Create PartitionedMPS objects and perform element-wise multiplication
 part_mps_ft_gr = PartitionedMPSs.PartitionedMPS(projcont_ft_gr, sites_rt_vec)
 part_mps_ft_inv_ao = PartitionedMPSs.PartitionedMPS(projcont_inv_ft_ao, sites_rt_vec)
 
@@ -389,7 +391,7 @@ function real_bubble_numerical(w, q; beta, mu, delta)
         num = fermi(epsilon_k - mu; beta)# - fermi(epsilon_kq - mu; beta)
         den = w + epsilon_k - epsilon_kq + im * delta
         res += num / den
-    end
+    en
     res / (2π)^2
 end
 
