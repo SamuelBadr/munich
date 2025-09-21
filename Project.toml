@@ -13,5 +13,4 @@ TCIAlgorithms = "baf62351-2e82-41dd-9129-4f5768a618e1"
 TCIITensorConversion = "9f0aa9f4-9415-4e6a-8795-331ebf40aa04"
 
 [sources]
-QuanticsGrids = {rev = "more-flexible-grids", url = "https://github.com/tensor4all/QuanticsGrids.jl.git"}
 TCIAlgorithms = {rev = "main", url = "https://github.com/tensor4all/TCIAlgorithms.jl"}
